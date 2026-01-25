@@ -50,7 +50,7 @@
 		"Description[zh_CN]": "Kpple菜单是一个下拉菜单，通常可在菜单栏的左侧找到。",
 		"Description[zh_TW]": "Kpple菜單是一個下拉菜單，通常可在菜單欄的左側找到。",
 		"EnabledByDefault": true,
-		"Icon": "start-here-kde",
+		"Icon": "application-menu",
 		"Id": "com.github.edmogeor.kppleMenu",
 		"License": "LGPL-2.0",
 		"Name": "Kpple Menu (Customisable)",

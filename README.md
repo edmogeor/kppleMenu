@@ -1,6 +1,17 @@
-# Kpple Menu
-The Kpple menu is a drop-down menu that is usually found on the left side of the menu bar.
-The original maintainer does not seem actively maintaining the project anymore. In order to port the plasmoid to KF6 I created this fork.
+# Kpple Menu (Customisable)
+
+A macOS-style Apple menu for KDE Plasma 6, now fully customisable.
+
+Forked from [ChrTall's Kpple Menu](https://github.com/ChrTall/kppleMenu).
+
+## Features
+
+- Add, remove, and reorder menu items
+- Create custom menu items with any command
+- Add dividers anywhere in the menu
+- Edit item names and commands
+- Optional keyboard shortcut labels
+- Custom panel icon support
 
 ## Previews
 
@@ -8,42 +19,54 @@ The original maintainer does not seem actively maintaining the project anymore. 
     <img src="screenshots/light_kppleMenu.png" alt="light preview"> <img src="screenshots/dark_kppleMenu.png" alt="dark preview">
 </p>
 
+## Default Menu Items
+
+- About This Computer (System Info)
+- System Preferences
+- App Store (Discover)
+- Sleep, Restart, Shut Down
+- Lock Screen & Log Out
+
+All items can be customised, removed, or reordered in settings.
+
+## Installation
+
+### From KDE Store (Recommended)
+
+Install via the [KDE Store](https://store.kde.org) (link coming soon).
+
+### Manual Installation
+
+```bash
+git clone https://github.com/edmogeor/kppleMenu.git
+kpackagetool6 --type "Plasma/Applet" -i kppleMenu/package
+```
+
+To uninstall:
+```bash
+kpackagetool6 --type "Plasma/Applet" -r com.github.edmogeor.kppleMenu
+```
+
 ## Usage
 
-Menu entries can be configured via the settings, if you tick the advanced settings checkbox.
-Simply click on the entries to check if the configured command is working.
-The commands should work on all Distributions with KDE Plasma 6, but might have to be adjusted manually.
+1. Add the widget to your panel
+2. Right-click and select "Configure..."
+3. Use the menu editor to add, remove, edit, or reorder items
+4. Click "Add Item" for custom commands or "Add Divider" for separators
 
 ### Keyboard Navigation
 
-A global shortcut to expand the applet can be configured under settings -> Keyboard Shortcuts.
-You can navigate through the menu with either tab and back-tab or arrow keys.
-Selected Entries can be executed by pressing the return, enter or space key.
-If the menu is expanded you can quickly:
-- Lock the Screen, by pressing ctrl + alt + q
-- Log out, by pressing shift + alt + q
+- Configure a global shortcut under Settings → Keyboard Shortcuts
+- Navigate with Tab/Shift+Tab or Arrow keys
+- Press Enter or Space to execute selected item
+- Lock Screen: Ctrl + Alt + Q
+- Log Out: Shift + Alt + Q
 
-## Missing Translations
+## Credits
 
-If you are using a language, other than English or German some entries do not have a translation yet.
-Feel free to create a PR after editing the corresponding `.po` file for your language under `package/translate`.
-
-## How to install Kpple menu on KDE Plasma ?
-
-The recommended installation method is via the [KDE store](https://store.kde.org/p/2164679).
-
-
-#### You can also use another install method ( by git ) :1
-
-Open a terminal and follow the steps below.
-There is no guarantee that i18n works, when using this method.
-
-```bash
-git clone https://github.com/chrtall/kppleMenu.git
-kpackagetool6 --type "Plasma/Applet" -i  kppleMenu/package
-```
+- Original Kpple Menu by [Kpple](mailto:info.kpple@gmail.com) (2020)
+- KDE Plasma 6 port by [ChrTall](https://github.com/ChrTall) (2024)
 
 ## License
 
 GNU GPL v2.0
-
