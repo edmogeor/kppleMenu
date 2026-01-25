@@ -1,6 +1,6 @@
-# Kpple Menu (Customisable)
+# Kpple Menu (Customizable)
 
-A macOS-style Apple menu for KDE Plasma 6, now fully customisable.
+A macOS-style Apple menu for KDE Plasma 6, now fully customizable.
 
 Forked from [ChrTall's Kpple Menu](https://github.com/ChrTall/kppleMenu).
 
@@ -16,7 +16,7 @@ Forked from [ChrTall's Kpple Menu](https://github.com/ChrTall/kppleMenu).
 ## Previews
 
 <p align="center">
-    <img src="screenshots/light_kppleMenu.png" alt="light preview"> <img src="screenshots/dark_kppleMenu.png" alt="dark preview">
+    <img src="screenshots/menu.png" alt="menu preview"> <img src="screenshots/customization.png" alt="customization preview">
 </p>
 
 ## Default Menu Items
