@@ -8,6 +8,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
+import QtQuick.Dialogs
 
 import org.kde.plasma.core as PlasmaCore
 import org.kde.ksvg as KSvg
@@ -23,18 +24,65 @@ import "../code/tools.js" as Tools
 KCM.SimpleKCM {
     id: root
 
-    property string cfg_icon: Plasmoid.configuration.icon
-    
-    property alias cfg_showAdvancedMode: showAdvancedMode.checked
-    property alias cfg_aboutThisComputerSettings: aboutThisComputerSettings.text
-    property alias cfg_systemPreferencesSettings: systemPreferencesSettings.text
-    property alias cfg_appStoreSettings: appStoreSettings.text
-    property alias cfg_sleepSettings: sleepSettings.text
-    property alias cfg_restartSettings: restartSettings.text
-    property alias cfg_shutDownSettings: shutDownSettings.text
-    property alias cfg_lockScreenSettings: lockScreenSettings.text
-    property alias cfg_logOutSettings: logOutSettings.text
+    property string cfg_icon: plasmoid.configuration.icon
+    property string cfg_menuItems: plasmoid.configuration.menuItems
 
+    // Parse and manage menu items
+    property var menuItemsList: {
+        try {
+            return JSON.parse(cfg_menuItems)
+        } catch (e) {
+            return []
+        }
+    }
+
+    function saveMenuItems() {
+        cfg_menuItems = JSON.stringify(menuItemsList)
+    }
+
+    function moveItem(fromIndex, toIndex) {
+        if (toIndex < 0 || toIndex >= menuItemsList.length) return
+        var items = menuItemsList.slice()
+        var item = items.splice(fromIndex, 1)[0]
+        items.splice(toIndex, 0, item)
+        menuItemsList = items
+        saveMenuItems()
+    }
+
+    function removeItem(index) {
+        var items = menuItemsList.slice()
+        items.splice(index, 1)
+        menuItemsList = items
+        saveMenuItems()
+    }
+
+    function addItem(type, name, command, shortcut) {
+        var items = menuItemsList.slice()
+        if (type === "divider") {
+            items.push({"type": "divider"})
+        } else {
+            var newItem = {"type": "item", "name": name || "New Item", "command": command || ""}
+            if (shortcut) newItem.shortcut = shortcut
+            items.push(newItem)
+        }
+        menuItemsList = items
+        saveMenuItems()
+    }
+
+    function updateItem(index, name, command, shortcut) {
+        var items = menuItemsList.slice()
+        if (items[index].type === "item") {
+            items[index].name = name
+            items[index].command = command
+            if (shortcut) {
+                items[index].shortcut = shortcut
+            } else {
+                delete items[index].shortcut
+            }
+        }
+        menuItemsList = items
+        saveMenuItems()
+    }
 
     Kirigami.FormLayout {
         /*
@@ -75,7 +123,7 @@ KCM.SimpleKCM {
             KSvg.FrameSvgItem {
                 id: previewFrame
                 anchors.centerIn: parent
-                imagePath: Plasmoid.formFactor === PlasmaCore.Types.Vertical || Plasmoid.formFactor === PlasmaCore.Types.Horizontal
+                imagePath: plasmoid.formFactor === PlasmaCore.Types.Vertical || plasmoid.formFactor === PlasmaCore.Types.Horizontal
                     ? "widgets/panel-background" : "widgets/background"
                 width: Kirigami.Units.iconSizes.large + fixedMargins.left + fixedMargins.right
                 height: Kirigami.Units.iconSizes.large + fixedMargins.top + fixedMargins.bottom
@@ -84,7 +132,7 @@ KCM.SimpleKCM {
                     anchors.centerIn: parent
                     width: Kirigami.Units.iconSizes.large
                     height: Kirigami.Units.iconSizes.large
-                    source: Tools.iconOrDefault(Plasmoid.formFactor, root.cfg_icon)
+                    source: Tools.iconOrDefault(plasmoid.formFactor, root.cfg_icon)
                 }
             }
 
@@ -95,7 +143,7 @@ KCM.SimpleKCM {
                 y: parent.height
 
                 QQC2.MenuItem {
-                    text: i18nc("@item:inmenu Open icon chooser dialog", "Choose…")
+                    text: i18nc("@item:inmenu Open icon chooser dialog", "Choose...")
                     icon.name: "document-open-folder"
                     Accessible.description: i18nc("@info:whatsthis", "Choose an icon for Application Launcher")
                     onClicked: iconDialog.open()
@@ -109,7 +157,7 @@ KCM.SimpleKCM {
                 QQC2.MenuItem {
                     text: i18nc("@action:inmenu", "Remove icon")
                     icon.name: "delete"
-                    enabled: root.cfg_icon !== "" && Plasmoid.formFactor !== PlasmaCore.Types.Vertical
+                    enabled: root.cfg_icon !== "" && plasmoid.formFactor !== PlasmaCore.Types.Vertical
                     onClicked: root.cfg_icon = ""
                 }
             }
@@ -117,143 +165,232 @@ KCM.SimpleKCM {
         /*
             End: code from plasma-desktop/applets/kickoff/contents/ui/ConfigGeneral.qml
         */
-        
-        QQC2.CheckBox {
-            id: showAdvancedMode
-            Kirigami.FormData.label: i18n("Advanced Settings:")
-            text: i18n("Show advanced mode")
-            checked: false
-            enabled:true
+
+        Item {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("Menu Items")
         }
 
-        Kirigami.ActionTextField {
-            id: aboutThisComputerSettings
-            Kirigami.FormData.label: i18n("About This Computer :")
-            placeholderText: i18n("kinfocenter")
-            enabled: showAdvancedMode.checked
-            rightActions: QQC2.Action {
-                icon.name: "edit-clear"
-                enabled: aboutThisComputerSettings.text !== ""
-                text: i18nc("@action:button", "Reset command")
-                onTriggered: {
-                    aboutThisComputerSettings.clear()
-                    root.cfg_aboutThisComputerSettings = ""
+        // Menu items list
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
+
+            QQC2.Frame {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 300
+
+                ListView {
+                    id: menuListView
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    model: root.menuItemsList
+                    clip: true
+                    spacing: 2
+
+                    delegate: QQC2.ItemDelegate {
+                        id: itemDelegate
+                        width: menuListView.width
+                        height: modelData.type === "divider" ? Kirigami.Units.gridUnit * 1.5 : Kirigami.Units.gridUnit * 2.5
+
+                        highlighted: menuListView.currentIndex === index
+
+                        onClicked: {
+                            menuListView.currentIndex = index
+                        }
+
+                        onDoubleClicked: {
+                            if (modelData.type === "item") {
+                                editDialog.itemIndex = index
+                                editDialog.itemName = modelData.name || ""
+                                editDialog.itemCommand = modelData.command || ""
+                                editDialog.itemShortcut = modelData.shortcut || ""
+                                editDialog.open()
+                            }
+                        }
+
+                        contentItem: RowLayout {
+                            spacing: Kirigami.Units.smallSpacing
+
+                            // Divider: just a horizontal line
+                            Rectangle {
+                                visible: modelData.type === "divider"
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
+                                height: 1
+                                color: Kirigami.Theme.disabledTextColor
+                            }
+
+                            // Menu item content
+                            ColumnLayout {
+                                visible: modelData.type === "item"
+                                Layout.fillWidth: true
+                                spacing: 0
+
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    text: modelData.name || i18n("Unnamed")
+                                    elide: Text.ElideRight
+                                }
+
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    text: modelData.command || ""
+                                    elide: Text.ElideRight
+                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                    color: Kirigami.Theme.disabledTextColor
+                                }
+                            }
+
+                            QQC2.Label {
+                                visible: modelData.shortcut ? true : false
+                                text: modelData.shortcut || ""
+                                color: Kirigami.Theme.disabledTextColor
+                            }
+                        }
+                    }
                 }
+            }
+
+            // Action buttons
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                QQC2.Button {
+                    icon.name: "list-add"
+                    text: i18n("Add Item")
+                    onClicked: {
+                        editDialog.itemIndex = -1
+                        editDialog.itemName = ""
+                        editDialog.itemCommand = ""
+                        editDialog.itemShortcut = ""
+                        editDialog.open()
+                    }
+                }
+
+                QQC2.Button {
+                    icon.name: "distribute-horizontal-center"
+                    text: i18n("Add Divider")
+                    onClicked: {
+                        root.addItem("divider")
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+
+                QQC2.Button {
+                    icon.name: "go-up"
+                    enabled: menuListView.currentIndex > 0
+                    onClicked: {
+                        var idx = menuListView.currentIndex
+                        root.moveItem(idx, idx - 1)
+                        menuListView.currentIndex = idx - 1
+                    }
+                    QQC2.ToolTip.text: i18n("Move Up")
+                    QQC2.ToolTip.visible: hovered
+                }
+
+                QQC2.Button {
+                    icon.name: "go-down"
+                    enabled: menuListView.currentIndex >= 0 && menuListView.currentIndex < root.menuItemsList.length - 1
+                    onClicked: {
+                        var idx = menuListView.currentIndex
+                        root.moveItem(idx, idx + 1)
+                        menuListView.currentIndex = idx + 1
+                    }
+                    QQC2.ToolTip.text: i18n("Move Down")
+                    QQC2.ToolTip.visible: hovered
+                }
+
+                QQC2.Button {
+                    icon.name: "edit-entry"
+                    enabled: menuListView.currentIndex >= 0 && root.menuItemsList[menuListView.currentIndex] && root.menuItemsList[menuListView.currentIndex].type === "item"
+                    onClicked: {
+                        var idx = menuListView.currentIndex
+                        var item = root.menuItemsList[idx]
+                        editDialog.itemIndex = idx
+                        editDialog.itemName = item.name || ""
+                        editDialog.itemCommand = item.command || ""
+                        editDialog.itemShortcut = item.shortcut || ""
+                        editDialog.open()
+                    }
+                    QQC2.ToolTip.text: i18n("Edit")
+                    QQC2.ToolTip.visible: hovered
+                }
+
+                QQC2.Button {
+                    icon.name: "list-remove"
+                    enabled: menuListView.currentIndex >= 0
+                    onClicked: {
+                        root.removeItem(menuListView.currentIndex)
+                        if (menuListView.currentIndex >= root.menuItemsList.length) {
+                            menuListView.currentIndex = root.menuItemsList.length - 1
+                        }
+                    }
+                    QQC2.ToolTip.text: i18n("Remove")
+                    QQC2.ToolTip.visible: hovered
+                }
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                text: i18n("Double-click an item to edit it")
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+            }
+        }
+    }
+
+    // Edit dialog
+    QQC2.Dialog {
+        id: editDialog
+        title: itemIndex === -1 ? i18n("Add Menu Item") : i18n("Edit Menu Item")
+        modal: true
+        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+        anchors.centerIn: parent
+
+        property int itemIndex: -1
+        property string itemName: ""
+        property string itemCommand: ""
+        property string itemShortcut: ""
+
+        onAccepted: {
+            if (itemIndex === -1) {
+                root.addItem("item", nameField.text, commandField.text, shortcutField.text)
+            } else {
+                root.updateItem(itemIndex, nameField.text, commandField.text, shortcutField.text)
             }
         }
 
-        Kirigami.ActionTextField {
-            id: systemPreferencesSettings
-            Kirigami.FormData.label: i18n("System Preferences :")
-            placeholderText: i18n("systemsettings5")
-            enabled: showAdvancedMode.checked
-            rightActions: QQC2.Action {
-                icon.name: "edit-clear"
-                enabled: systemPreferencesSettings.text !== ""
-                text: i18nc("@action:button", "Reset command")
-                onTriggered: {
-                    systemPreferencesSettings.clear()
-                    root.cfg_systemPreferencesSettings = ""
-                }
-            }
+        onOpened: {
+            nameField.text = itemName
+            commandField.text = itemCommand
+            shortcutField.text = itemShortcut
+            nameField.forceActiveFocus()
         }
 
-        Kirigami.ActionTextField {
-            id: appStoreSettings
-            Kirigami.FormData.label: i18n ("App Store :")
-            placeholderText: i18n("plasma-discover")
-            enabled: showAdvancedMode.checked
-            rightActions: QQC2.Action {
-                icon.name: "edit-clear"
-                enabled: appStoreSettings.text !== ""
-                text: i18nc("@action:button", "Reset command")
-                onTriggered: {
-                    appStoreSettings.clear()
-                    root.cfg_appStoreSettings = ""
-                }
+        contentItem: Kirigami.FormLayout {
+            QQC2.TextField {
+                id: nameField
+                Kirigami.FormData.label: i18n("Name:")
+                placeholderText: i18n("Menu item name")
+                Layout.preferredWidth: 300
             }
-        }
 
-        Kirigami.ActionTextField {
-            id: sleepSettings
-            Kirigami.FormData.label: i18n ("Sleep :")
-            placeholderText: i18n("systemctl suspend")
-            enabled: showAdvancedMode.checked
-            rightActions: QQC2.Action {
-                icon.name: "edit-clear"
-                enabled: sleepSettings.text !== ""
-                text: i18nc("@action:button", "Reset command")
-                onTriggered: {
-                    sleepSettings.clear()
-                    root.cfg_sleepSettings = ""
-                }
+            QQC2.TextField {
+                id: commandField
+                Kirigami.FormData.label: i18n("Command:")
+                placeholderText: i18n("Command to execute")
+                Layout.preferredWidth: 300
             }
-        }
 
-        Kirigami.ActionTextField {
-            id: restartSettings
-            Kirigami.FormData.label: i18n ("Restart :")
-            placeholderText: i18n("/sbin/reboot")
-            enabled: showAdvancedMode.checked
-            rightActions: QQC2.Action {
-                icon.name: "edit-clear"
-                enabled: restartSettings.text !== ""
-                text: i18nc("@action:button", "Reset command")
-                onTriggered: {
-                    restartSettings.clear()
-                    root.cfg_restartSettings = ""
-                }
-            }
-        }
-
-        Kirigami.ActionTextField {
-            id: shutDownSettings
-            Kirigami.FormData.label: i18n ("Shut Down :")
-            placeholderText: i18n("/sbin/shutdown now")
-            enabled: showAdvancedMode.checked
-            rightActions: QQC2.Action {
-                icon.name: "edit-clear"
-                enabled: shutDownSettings.text !== ""
-                text: i18nc("@action:button", "Reset command")
-                onTriggered: {
-                    shutDownSettings.clear()
-                    root.cfg_shutDownSettings = ""
-                }
-            }
-        }
-
-        Kirigami.ActionTextField {
-            id: lockScreenSettings
-            Kirigami.FormData.label: i18n ("Lock Screen :")
-            placeholderText: i18n("qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock")
-            enabled: showAdvancedMode.checked
-            rightActions: QQC2.Action {
-                icon.name: "edit-clear"
-                enabled: lockScreenSettings.text !== ""
-                text: i18nc("@action:button", "Reset command")
-                onTriggered: {
-                    lockScreenSettings.clear()
-                    root.cfg_lockScreenSettings = ""
-                }
-            }
-        }
-
-        Kirigami.ActionTextField {
-            id: logOutSettings
-            Kirigami.FormData.label: i18n ("Log Out :")
-            placeholderText: i18n("qdbus org.kde.ksmserver /KSMServer logout 0 0 0")
-            enabled: showAdvancedMode.checked
-            rightActions: QQC2.Action {
-                icon.name: "edit-clear"
-                enabled: logOutSettings.text !== ""
-                text: i18nc("@action:button", "Reset command")
-                onTriggered: {
-                    logOutSettings.clear()
-                    root.cfg_logOutSettings = ""
-                }
+            QQC2.TextField {
+                id: shortcutField
+                Kirigami.FormData.label: i18n("Shortcut label (optional):")
+                placeholderText: i18n("e.g. ⌃⌘Q")
+                Layout.preferredWidth: 300
             }
         }
     }
 }
-
- 

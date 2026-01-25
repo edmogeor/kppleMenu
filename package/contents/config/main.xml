@@ -11,44 +11,15 @@ SPDX-License-Identifier: GPL-2.0-or-later
       http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
   <kcfgfile name=""/>
 
-  <group name="Advanced">
+  <group name="General">
     <entry name="icon" type="String">
       <label>The name of the icon to use for the compact representation (e.g. on a small panel).</label>
       <default>start-here-kde-symbolic</default>
     </entry>
-    <entry name="showAdvancedMode" type="Bool">
-      <default>false</default>
-    </entry>
-    <entry name="aboutThisComputerSettings" type="String">
-      <default>kinfocenter</default>
-    </entry>
-    <entry name="systemPreferencesSettings" type="String">
-      <default>systemsettings</default>
-    </entry>
-    <entry name="appStoreSettings" type="String">
-      <default>plasma-discover</default>
-    </entry>
-    <entry name="forceQuitSettings" type="String">
-      <default>xkill</default>
-    </entry>
-    <entry name="sleepSettings" type="String">
-      <default>systemctl suspend</default>
-    </entry>
-    <entry name="restartSettings" type="String">
-      <default>/sbin/reboot</default>
-    </entry>
-    <entry name="shutDownSettings" type="String">
-      <default>/sbin/shutdown now</default>
-    </entry>
-    <entry name="lockScreenSettings" type="String">
-      <default>qdbus6 org.freedesktop.ScreenSaver /ScreenSaver Lock</default>
-    </entry>
-    <entry name="logOutSettings" type="String">
-      <default>qdbus6 org.kde.Shutdown /Shutdown logout</default>
+    <entry name="menuItems" type="String">
+      <label>JSON array of menu items</label>
+      <default>[{"type":"item","name":"About This Computer","command":"kinfocenter"},{"type":"divider"},{"type":"item","name":"System Preferences...","command":"systemsettings"},{"type":"item","name":"App Store...","command":"plasma-discover"},{"type":"divider"},{"type":"item","name":"Sleep","command":"systemctl suspend"},{"type":"item","name":"Restart...","command":"/sbin/reboot"},{"type":"item","name":"Shut Down...","command":"/sbin/shutdown now"},{"type":"divider"},{"type":"item","name":"Lock Screen","command":"qdbus6 org.freedesktop.ScreenSaver /ScreenSaver Lock","shortcut":"⌃⌘Q"},{"type":"item","name":"Log Out","command":"qdbus6 org.kde.Shutdown /Shutdown logout","shortcut":"⇧⌘Q"}]</default>
     </entry>
   </group>
-  
+
 </kcfg>
-
-
- 

@@ -21,8 +21,18 @@ PlasmoidItem {
     hideOnWindowDeactivate: true
     Plasmoid.icon: plasmoid.configuration.icon
     property bool fullRepHasFocus: false
-    
-    // define exec system ( call commands ) : by Uswitch applet! 
+
+    // Parse menu items from configuration
+    property var menuItemsModel: {
+        try {
+            return JSON.parse(plasmoid.configuration.menuItems)
+        } catch (e) {
+            console.error("Failed to parse menuItems:", e)
+            return []
+        }
+    }
+
+    // define exec system ( call commands ) : by Uswitch applet!
     Plasma5Support.DataSource {
         id: executable
         engine: "executable"
@@ -72,210 +82,130 @@ PlasmoidItem {
 
     fullRepresentation: Item {
         id: fullRep
-        
+
         readonly property double iwSize: Kirigami.Units.gridUnit * 12.6 // item width
         readonly property double shSize: 1.1 // separator height
-        
-        // config var
-        readonly property string aboutThisComputerCMD: plasmoid.configuration.aboutThisComputerSettings
-        readonly property string systemPreferencesCMD: plasmoid.configuration.systemPreferencesSettings
-        readonly property string appStoreCMD: plasmoid.configuration.appStoreSettings
-        readonly property string forceQuitCMD: plasmoid.configuration.forceQuitSettings
-        readonly property string sleepCMD: plasmoid.configuration.sleepSettings
-        readonly property string restartCMD: plasmoid.configuration.restartSettings
-        readonly property string shutDownCMD: plasmoid.configuration.shutDownSettings
-        readonly property string lockScreenCMD: plasmoid.configuration.lockScreenSettings
-        readonly property string logOutCMD: plasmoid.configuration.logOutSettings
-        
+
         Layout.preferredWidth: iwSize
-        Layout.preferredHeight: aboutThisComputerItem.height * 12
+        Layout.preferredHeight: columnLayout.implicitHeight
 
         focus: root.fullRepHasFocus
         Keys.onPressed: (event) => {
-            switch (event.key) {
-                // Enable Keyboard Navigation with Arrow Keys. Start at the bottom of list.
-                case Qt.Key_Up:
-                    logOutItem.forceActiveFocus()
-                    break;
-                // Enable Keyboard Navigation with Arrow Keys. Start at the top of list.
-                case Qt.Key_Down:
-                    aboutThisComputerItem.forceActiveFocus()
-                    break;
+            // Find first and last visible items for keyboard navigation
+            var firstItem = null
+            var lastItem = null
+            for (var i = 0; i < menuRepeater.count; i++) {
+                var item = menuRepeater.itemAt(i)
+                if (item && item.isMenuItem) {
+                    if (!firstItem) firstItem = item
+                    lastItem = item
+                }
+            }
 
-            }
-            // Use Lock Screen Shortcut displayed in UI. ⌘ is treated as Alt Key.
-            if (event.key === Qt.Key_Q && (event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.AltModifier)){
-                lockScreenItem.clicked()
-            }
-            // Use Log Out Shortcut display in UI. ⌘ is treated as Alt Key.
-            if (event.key === Qt.Key_Q && (event.modifiers & Qt.ShiftModifier) && (event.modifiers & Qt.AltModifier)){
-                logOutItem.clicked()
+            switch (event.key) {
+                case Qt.Key_Up:
+                    if (lastItem) lastItem.forceActiveFocus()
+                    break;
+                case Qt.Key_Down:
+                    if (firstItem) firstItem.forceActiveFocus()
+                    break;
             }
         }
 
         ColumnLayout {
-            id: columm
+            id: columnLayout
             anchors.fill: parent
-            spacing: 2 // no spacing
-            
-            ListDelegate {
-                id: aboutThisComputerItem
-                visible: aboutThisComputerCMD !== ""
-                highlight: delegateHighlight
-                text: i18n("About This Computer")
-                onClicked: {
-                    executable.exec(aboutThisComputerCMD); // cmd exec
-                }
-                activeFocusOnTab: true
-                KeyNavigation.up: logOutItem
-                KeyNavigation.down: systemPreferencesItem
-            }
+            spacing: 2
 
-            MenuSeparator {
-                id: s1
-                visible: aboutThisComputerItem.visible && (systemPreferencesItem.visible || appStoreItem.visible)
-                padding: 0
-                topPadding: 5
-                bottomPadding: 5
-                contentItem: Rectangle {
-                    implicitWidth: iwSize
-                    implicitHeight: shSize
-                    color: "#1E000000"
-                }
-            }
+            Repeater {
+                id: menuRepeater
+                model: root.menuItemsModel
 
-            ListDelegate {
-                id: systemPreferencesItem
-                visible: systemPreferencesCMD !== ""
-                highlight: delegateHighlight
-                width: parent
-                text: i18n("System Preferences...")
-                onClicked: {
-                    executable.exec(systemPreferencesCMD); // cmd exec
-                }
-                activeFocusOnTab: true
-                KeyNavigation.up: aboutThisComputerItem
-                KeyNavigation.down: appStoreItem
-            }
+                delegate: Loader {
+                    id: delegateLoader
+                    Layout.fillWidth: true
 
-            ListDelegate {
-                id: appStoreItem
-                visible: appStoreCMD !== ""
-                highlight: delegateHighlight
-                text: i18n("App Store...")
-                onClicked: {
-                    executable.exec(appStoreCMD); // cmd exec
-                }
-                activeFocusOnTab: true
-                KeyNavigation.up: systemPreferencesItem
-                KeyNavigation.down: sleepItem
-            }
-            
-            MenuSeparator {
-                id: s3
-                visible: (systemPreferencesItem.visible || appStoreItem.visible) && (sleepItem.visible || restartItem.visible || shutDownItem.visible)
-                padding: 0
-                topPadding: 5
-                bottomPadding: 5
-                contentItem: Rectangle {
-                    implicitWidth: iwSize
-                    implicitHeight: shSize
-                    color: "#1E000000"
-                }
-            }
+                    property bool isMenuItem: modelData.type === "item"
+                    property int itemIndex: index
 
-            ListDelegate {
-                id: sleepItem
-                visible: sleepCMD !== ""
-                highlight: delegateHighlight
-                text: i18n("Sleep")
-                onClicked: {
-                    executable.exec(sleepCMD); // cmd exec
-                }
-                activeFocusOnTab: true
-                KeyNavigation.up: appStoreItem
-                KeyNavigation.down: restartItem
-            }
+                    sourceComponent: modelData.type === "divider" ? dividerComponent : menuItemComponent
 
-            ListDelegate {
-                id: restartItem
-                visible: restartCMD !== ""
-                highlight: delegateHighlight
-                text: i18n("Restart...")
-                onClicked: {
-                    executable.exec(restartCMD); // cmd exec
-                }
-                activeFocusOnTab: true
-                KeyNavigation.up: sleepItem
-                KeyNavigation.down: shutDownItem
-            }
+                    // Forward focus methods to loaded item
+                    function forceActiveFocus() {
+                        if (item && item.forceActiveFocus) {
+                            item.forceActiveFocus()
+                        }
+                    }
 
-            ListDelegate {
-                id: shutDownItem
-                visible: shutDownCMD !== ""
-                highlight: delegateHighlight
-                text: i18n("Shut Down...")
-                onClicked: {
-                    executable.exec(shutDownCMD); // cmd exec
-                }
-                activeFocusOnTab: true
-                KeyNavigation.up: restartItem
-                KeyNavigation.down: lockScreenItem
-            }
+                    Component {
+                        id: dividerComponent
+                        MenuSeparator {
+                            padding: 0
+                            topPadding: 5
+                            bottomPadding: 5
+                            contentItem: Rectangle {
+                                implicitWidth: fullRep.iwSize
+                                implicitHeight: fullRep.shSize
+                                color: "#1E000000"
+                            }
+                        }
+                    }
 
-            MenuSeparator {
-                id: s4
-                visible: (sleepItem.visible || restartItem.visible || shutDownItem.visible) && (lockScreenItem.visible || logOutItem.visible)
-                padding: 0
-                topPadding: 5
-                bottomPadding: 5
-                contentItem: Rectangle {
-                    implicitWidth: iwSize
-                    implicitHeight: shSize
-                    color: "#1E000000"
-                }
-            }
+                    Component {
+                        id: menuItemComponent
+                        ListDelegate {
+                            id: menuItem
+                            highlight: delegateHighlight
+                            text: modelData.name || ""
 
-            ListDelegate {
-                id: lockScreenItem
-                visible: lockScreenCMD !== ""
-                highlight: delegateHighlight
-                text: i18n("Lock Screen")
-                // right shortcut item
-                PlasmaComponents.Label {
-                    text: "⌃⌘Q "
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-                onClicked: {
-                    executable.exec(lockScreenCMD); // cmd exec
-                }
-                activeFocusOnTab: true
-                KeyNavigation.up: shutDownItem
-                KeyNavigation.down: logOutItem
-            }
+                            PlasmaComponents.Label {
+                                visible: modelData.shortcut ? true : false
+                                text: modelData.shortcut ? modelData.shortcut + " " : ""
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
 
-            ListDelegate {
-                id: logOutItem
-                visible: logOutCMD !== ""
-                highlight: delegateHighlight
-                text: i18n("Log Out")
-                // right shortcut item
-                PlasmaComponents.Label {
-                    text: "⇧⌘Q "
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
+                            onClicked: {
+                                if (modelData.command) {
+                                    executable.exec(modelData.command)
+                                }
+                            }
+
+                            activeFocusOnTab: true
+
+                            // Dynamic keyboard navigation
+                            KeyNavigation.up: {
+                                // Find previous menu item
+                                for (var i = delegateLoader.itemIndex - 1; i >= 0; i--) {
+                                    var item = menuRepeater.itemAt(i)
+                                    if (item && item.isMenuItem) return item
+                                }
+                                // Wrap to last item
+                                for (var j = menuRepeater.count - 1; j > delegateLoader.itemIndex; j--) {
+                                    var item2 = menuRepeater.itemAt(j)
+                                    if (item2 && item2.isMenuItem) return item2
+                                }
+                                return null
+                            }
+
+                            KeyNavigation.down: {
+                                // Find next menu item
+                                for (var i = delegateLoader.itemIndex + 1; i < menuRepeater.count; i++) {
+                                    var item = menuRepeater.itemAt(i)
+                                    if (item && item.isMenuItem) return item
+                                }
+                                // Wrap to first item
+                                for (var j = 0; j < delegateLoader.itemIndex; j++) {
+                                    var item2 = menuRepeater.itemAt(j)
+                                    if (item2 && item2.isMenuItem) return item2
+                                }
+                                return null
+                            }
+                        }
+                    }
                 }
-                onClicked: {
-                    executable.exec(logOutCMD); // cmd exec
-                }
-                activeFocusOnTab: true
-                KeyNavigation.up: lockScreenItem
-                KeyNavigation.down: aboutThisComputerItem
             }
         }
     }
 
 } // end item
-
-
