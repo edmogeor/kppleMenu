@@ -17,7 +17,7 @@ import org.kde.kirigami as Kirigami
 
 PlasmoidItem {
     id: root
-    toolTipSubText: i18n("Shortcuts for shutdown,reboot,logout, settings etc.")
+    toolTipSubText: i18n("Shortcuts for shutdown, reboot, logout, settings etc.")
     hideOnWindowDeactivate: true
     Plasmoid.icon: plasmoid.configuration.icon
     property bool fullRepHasFocus: false
