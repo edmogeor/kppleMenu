@@ -120,6 +120,7 @@ PlasmoidItem {
             
             ListDelegate {
                 id: aboutThisComputerItem
+                visible: aboutThisComputerCMD !== ""
                 highlight: delegateHighlight
                 text: i18n("About This Computer")
                 onClicked: {
@@ -132,6 +133,7 @@ PlasmoidItem {
 
             MenuSeparator {
                 id: s1
+                visible: aboutThisComputerItem.visible && (systemPreferencesItem.visible || appStoreItem.visible)
                 padding: 0
                 topPadding: 5
                 bottomPadding: 5
@@ -144,6 +146,7 @@ PlasmoidItem {
 
             ListDelegate {
                 id: systemPreferencesItem
+                visible: systemPreferencesCMD !== ""
                 highlight: delegateHighlight
                 width: parent
                 text: i18n("System Preferences...")
@@ -157,6 +160,7 @@ PlasmoidItem {
 
             ListDelegate {
                 id: appStoreItem
+                visible: appStoreCMD !== ""
                 highlight: delegateHighlight
                 text: i18n("App Store...")
                 onClicked: {
@@ -169,6 +173,7 @@ PlasmoidItem {
             
             MenuSeparator {
                 id: s3
+                visible: (systemPreferencesItem.visible || appStoreItem.visible) && (sleepItem.visible || restartItem.visible || shutDownItem.visible)
                 padding: 0
                 topPadding: 5
                 bottomPadding: 5
@@ -181,6 +186,7 @@ PlasmoidItem {
 
             ListDelegate {
                 id: sleepItem
+                visible: sleepCMD !== ""
                 highlight: delegateHighlight
                 text: i18n("Sleep")
                 onClicked: {
@@ -193,6 +199,7 @@ PlasmoidItem {
 
             ListDelegate {
                 id: restartItem
+                visible: restartCMD !== ""
                 highlight: delegateHighlight
                 text: i18n("Restart...")
                 onClicked: {
@@ -205,6 +212,7 @@ PlasmoidItem {
 
             ListDelegate {
                 id: shutDownItem
+                visible: shutDownCMD !== ""
                 highlight: delegateHighlight
                 text: i18n("Shut Down...")
                 onClicked: {
@@ -217,6 +225,7 @@ PlasmoidItem {
 
             MenuSeparator {
                 id: s4
+                visible: (sleepItem.visible || restartItem.visible || shutDownItem.visible) && (lockScreenItem.visible || logOutItem.visible)
                 padding: 0
                 topPadding: 5
                 bottomPadding: 5
@@ -229,6 +238,7 @@ PlasmoidItem {
 
             ListDelegate {
                 id: lockScreenItem
+                visible: lockScreenCMD !== ""
                 highlight: delegateHighlight
                 text: i18n("Lock Screen")
                 // right shortcut item
@@ -247,6 +257,7 @@ PlasmoidItem {
 
             ListDelegate {
                 id: logOutItem
+                visible: logOutCMD !== ""
                 highlight: delegateHighlight
                 text: i18n("Log Out")
                 // right shortcut item
