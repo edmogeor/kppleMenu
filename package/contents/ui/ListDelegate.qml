@@ -9,6 +9,7 @@ import QtQuick
 import QtQuick.Layouts
 
 import org.kde.plasma.components as PlasmaComponents
+import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 
 Item {
@@ -16,26 +17,22 @@ Item {
 
     signal clicked
 
-    property Item highlight
     property alias text: label.text
 
     Layout.fillWidth: true
     height: row.height
-    onFocusChanged: {
-        if(focus){
-            if (!highlight) {
-                return
-            }
-            highlight.parent = item
-            highlight.width = item.width
-            highlight.height = item.height
-            highlight.visible = true
-            highlight.active = true
-            highlight.hovered = true
-        }
+
+    // Each item has its own highlight
+    PlasmaExtras.Highlight {
+        id: itemHighlight
+        anchors.fill: parent
+        visible: item.activeFocus
+        hovered: item.activeFocus
+        active: item.activeFocus
     }
+
     Keys.onPressed: (event) => {
-        if(event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space) {
+        if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return || event.key === Qt.Key_Space) {
             event.accepted = true
             item.clicked()
         }
@@ -48,13 +45,10 @@ Item {
         onClicked: {
             item.clicked()
         }
-
-        // detect the mouse on the item
         onContainsMouseChanged: {
-            if (!highlight || !area.containsMouse) {
-                return
+            if (area.containsMouse) {
+                item.forceActiveFocus()
             }
-            item.focus = true
         }
     }
 
@@ -76,4 +70,3 @@ Item {
         }
     }
 }
- 

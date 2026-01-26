@@ -10,6 +10,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 
 import org.kde.plasma.plasmoid
+import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.plasma5support as Plasma5Support
@@ -60,22 +61,11 @@ PlasmoidItem {
         signal exited(string sourceName, string stdout)
     }
 
-    //define highlight
-    PlasmaExtras.Highlight {
-        id: delegateHighlight
-        visible: false
-    }
-
     onExpandedChanged : (expanded) => {
         if(expanded){
             // Always focus fullRep, when applet is expanded to enable keyboard navigation.
             root.fullRepHasFocus = true
         }else {
-            // Deactivate Highlight and focus, when applet is minimized/hidden, else navigation state would persist.
-            if (delegateHighlight.parent) {
-                delegateHighlight.parent.focus = false
-                delegateHighlight.parent = null
-            }
             root.fullRepHasFocus = false
         }
     }
@@ -95,10 +85,10 @@ PlasmoidItem {
             var firstItem = null
             var lastItem = null
             for (var i = 0; i < menuRepeater.count; i++) {
-                var item = menuRepeater.itemAt(i)
-                if (item && item.isMenuItem) {
-                    if (!firstItem) firstItem = item
-                    lastItem = item
+                var loader = menuRepeater.itemAt(i)
+                if (loader && loader.isMenuItem && loader.item) {
+                    if (!firstItem) firstItem = loader.item
+                    lastItem = loader.item
                 }
             }
 
@@ -155,7 +145,6 @@ PlasmoidItem {
                         id: menuItemComponent
                         ListDelegate {
                             id: menuItem
-                            highlight: delegateHighlight
                             text: modelData.name || ""
 
                             PlasmaComponents.Label {
@@ -177,13 +166,13 @@ PlasmoidItem {
                             KeyNavigation.up: {
                                 // Find previous menu item
                                 for (var i = delegateLoader.itemIndex - 1; i >= 0; i--) {
-                                    var item = menuRepeater.itemAt(i)
-                                    if (item && item.isMenuItem) return item
+                                    var loader = menuRepeater.itemAt(i)
+                                    if (loader && loader.isMenuItem && loader.item) return loader.item
                                 }
                                 // Wrap to last item
                                 for (var j = menuRepeater.count - 1; j > delegateLoader.itemIndex; j--) {
-                                    var item2 = menuRepeater.itemAt(j)
-                                    if (item2 && item2.isMenuItem) return item2
+                                    var loader2 = menuRepeater.itemAt(j)
+                                    if (loader2 && loader2.isMenuItem && loader2.item) return loader2.item
                                 }
                                 return null
                             }
@@ -191,13 +180,13 @@ PlasmoidItem {
                             KeyNavigation.down: {
                                 // Find next menu item
                                 for (var i = delegateLoader.itemIndex + 1; i < menuRepeater.count; i++) {
-                                    var item = menuRepeater.itemAt(i)
-                                    if (item && item.isMenuItem) return item
+                                    var loader = menuRepeater.itemAt(i)
+                                    if (loader && loader.isMenuItem && loader.item) return loader.item
                                 }
                                 // Wrap to first item
                                 for (var j = 0; j < delegateLoader.itemIndex; j++) {
-                                    var item2 = menuRepeater.itemAt(j)
-                                    if (item2 && item2.isMenuItem) return item2
+                                    var loader2 = menuRepeater.itemAt(j)
+                                    if (loader2 && loader2.isMenuItem && loader2.item) return loader2.item
                                 }
                                 return null
                             }
