@@ -39,12 +39,18 @@ Install via the [KDE Store](https://store.kde.org) (link coming soon).
 
 ```bash
 git clone https://github.com/edmogeor/kppleMenu.git
-kpackagetool6 --type "Plasma/Applet" -i kppleMenu/package
+cd kppleMenu
+./install.sh
+```
+
+To install system-wide:
+```bash
+./install.sh --global
 ```
 
 To uninstall:
 ```bash
-kpackagetool6 --type "Plasma/Applet" -r com.github.edmogeor.kppleMenu
+./uninstall.sh
 ```
 
 ## Usage
