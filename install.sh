@@ -18,17 +18,19 @@ if $global; then
     echo "Installing Kpple Menu widget globally..."
     INSTALL_DIR="/usr/share/plasma/plasmoids/$PLUGIN_ID"
     GLOBAL_FLAG="-g"
+    SUDO="sudo"
 else
     echo "Installing Kpple Menu widget for current user..."
     INSTALL_DIR="$HOME/.local/share/plasma/plasmoids/$PLUGIN_ID"
     GLOBAL_FLAG=""
+    SUDO=""
 fi
 
 if [ -d "$INSTALL_DIR" ]; then
     echo "Existing installation found, upgrading..."
-    kpackagetool6 -t "$TYPE" $GLOBAL_FLAG -u "$PACKAGE_DIR"
+    $SUDO kpackagetool6 -t "$TYPE" $GLOBAL_FLAG -u "$PACKAGE_DIR"
 else
-    kpackagetool6 -t "$TYPE" $GLOBAL_FLAG -i "$PACKAGE_DIR"
+    $SUDO kpackagetool6 -t "$TYPE" $GLOBAL_FLAG -i "$PACKAGE_DIR"
 fi
 
 if [ $? -eq 0 ]; then
