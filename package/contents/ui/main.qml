@@ -81,6 +81,7 @@ PlasmoidItem {
 
         Layout.preferredWidth: iwSize
         Layout.preferredHeight: columnLayout.implicitHeight
+        Layout.minimumHeight: columnLayout.implicitHeight
 
         focus: root.fullRepHasFocus
         Keys.onPressed: (event) => {
