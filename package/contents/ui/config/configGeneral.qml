@@ -25,6 +25,8 @@ KCM.SimpleKCM {
     id: root
 
     property string cfg_icon: plasmoid.configuration.icon
+    property string cfg_toolTipTitle: plasmoid.configuration.toolTipTitle
+    property string cfg_toolTipSubText: plasmoid.configuration.toolTipSubText
     property string cfg_menuItems: plasmoid.configuration.menuItems
 
     // Parse and manage menu items
@@ -165,6 +167,23 @@ KCM.SimpleKCM {
         /*
             End: code from plasma-desktop/applets/kickoff/contents/ui/ConfigGeneral.qml
         */
+
+        QQC2.TextField {
+            id: toolTipTitleField
+            Kirigami.FormData.label: i18n("Tooltip title:")
+            Layout.preferredWidth: 300
+            text: root.cfg_toolTipTitle
+            onTextChanged: root.cfg_toolTipTitle = text
+            placeholderText: i18n("Kpple Menu (Customizable)")
+        }
+
+        QQC2.TextField {
+            id: toolTipSubTextField
+            Kirigami.FormData.label: i18n("Tooltip description:")
+            Layout.preferredWidth: 300
+            text: root.cfg_toolTipSubText
+            onTextChanged: root.cfg_toolTipSubText = text
+        }
 
         Item {
             Kirigami.FormData.isSection: true

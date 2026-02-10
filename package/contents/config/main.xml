@@ -16,6 +16,14 @@ SPDX-License-Identifier: GPL-2.0-or-later
       <label>The name of the icon to use for the compact representation (e.g. on a small panel).</label>
       <default>start-here-kde-symbolic</default>
     </entry>
+    <entry name="toolTipTitle" type="String">
+      <label>The tooltip title text</label>
+      <default>Kpple Menu (Customizable)</default>
+    </entry>
+    <entry name="toolTipSubText" type="String">
+      <label>The tooltip description text</label>
+      <default>Shortcuts for shutdown, reboot, logout, settings etc.</default>
+    </entry>
     <entry name="menuItems" type="String">
       <label>JSON array of menu items</label>
       <default>[{"type":"item","name":"About This Computer","command":"kinfocenter"},{"type":"divider"},{"type":"item","name":"System Preferences...","command":"systemsettings"},{"type":"item","name":"App Store...","command":"plasma-discover"},{"type":"divider"},{"type":"item","name":"Sleep","command":"systemctl suspend"},{"type":"item","name":"Restart...","command":"/sbin/reboot"},{"type":"item","name":"Shut Down...","command":"/sbin/shutdown now"},{"type":"divider"},{"type":"item","name":"Lock Screen","command":"qdbus6 org.freedesktop.ScreenSaver /ScreenSaver Lock","shortcut":"⌃⌘Q"},{"type":"item","name":"Log Out","command":"qdbus6 org.kde.Shutdown /Shutdown logout","shortcut":"⇧⌘Q"}]</default>
